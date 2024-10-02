@@ -1,6 +1,10 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// Set canvas to full screen
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
 const box = 20;
 let score = 0;
 
@@ -13,8 +17,9 @@ setInterval(gameLoop, 100);
 
 function gameLoop() {
     if (isGameOver()) {
-        alert("Game Over! Your score was: " + score);
-        document.location.reload();
+        // Reset game on game over
+        resetGame();
+        return;
     }
 
     drawBackground();
@@ -95,4 +100,11 @@ function isGameOver() {
 
 function drawScore() {
     document.getElementById("score").innerText = "Score: " + score;
+}
+
+function resetGame() {
+    score = 0;
+    snake = [{ x: box * 5, y: box * 5 }];
+    direction = "RIGHT";
+    apple = spawnApple();
 }
