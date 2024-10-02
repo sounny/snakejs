@@ -1,110 +1,84 @@
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+// Get the canvas element
+const canvas = document.getElementById('game-canvas');
+const ctx = canvas.getContext('2d');
 
-// Set canvas to full screen
+// Set canvas dimensions to full screen
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-const box = 20;
+// Game variables
+let snake = [
+    { x: canvas.width / 2, y: canvas.height / 2 },
+    { x: canvas.width / 2 - 20, y: canvas.height / 2 },
+    { x: canvas.width / 2 - 40, y: canvas.height / 2 }
+];
+let apple = { x: 0, y: 0 };
 let score = 0;
+let direction = 'right';
+let speed = 20;
 
-let snake = [{ x: box * 5, y: box * 5 }];
-let direction = "RIGHT";
-let apple = spawnApple();
-
-document.addEventListener("keydown", changeDirection);
-setInterval(gameLoop, 100);
-
-function gameLoop() {
-    if (isGameOver()) {
-        // Reset game on game over
-        resetGame();
-        return;
-    }
-
-    drawBackground();
-    drawSnake();
-    drawApple();
-    updateSnake();
-    drawScore();
+// Generate new apple position
+function newApple() {
+    apple.x = Math.floor(Math.random() * (canvas.width / 20)) * 20;
+    apple.y = Math.floor(Math.random() * (canvas.height / 20)) * 20;
 }
 
-function drawBackground() {
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-}
-
-function drawSnake() {
-    snake.forEach((segment, index) => {
-        ctx.fillStyle = index === 0 ? "green" : "lightgreen";
-        ctx.fillRect(segment.x, segment.y, box, box);
-        ctx.strokeStyle = "darkgreen";
-        ctx.strokeRect(segment.x, segment.y, box, box);
+// Draw game elements
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'green';
+    snake.forEach((part) => {
+        ctx.fillRect(part.x, part.y, 20, 20);
     });
+    ctx.fillStyle = 'red';
+    ctx.fillRect(apple.x, apple.y, 20, 20);
+    ctx.fillStyle = 'black';
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(`Score: ${score}`, 10, 10);
 }
 
-function drawApple() {
-    ctx.fillStyle = "red";
-    ctx.fillRect(apple.x, apple.y, box, box);
-}
+// Update game state
+function update() {
+    // Move snake
+    for (let i = snake.length - 1; i > 0; i--) {
+        snake[i].x = snake[i - 1].x;
+        snake[i].y = snake[i - 1].y;
+    }
+    if (direction === 'right') snake[0].x += 20;
+    if (direction === 'left') snake[0].x -= 20;
+    if (direction === 'up') snake[0].y -= 20;
+    if (direction === 'down') snake[0].y += 20;
 
-function updateSnake() {
-    let head = { x: snake[0].x, y: snake[0].y };
-
-    if (direction === "LEFT") head.x -= box;
-    if (direction === "UP") head.y -= box;
-    if (direction === "RIGHT") head.x += box;
-    if (direction === "DOWN") head.y += box;
-
-    if (head.x === apple.x && head.y === apple.y) {
+    // Check collision with apple
+    if (snake[0].x === apple.x && snake[0].y === apple.y) {
         score++;
-        apple = spawnApple();
-    } else {
-        snake.pop();
+        snake.push({ x: snake[snake.length - 1].x, y: snake[snake.length - 1].y });
+        newApple();
     }
 
-    snake.unshift(head);
-}
-
-function spawnApple() {
-    return {
-        x: Math.floor(Math.random() * (canvas.width / box)) * box,
-        y: Math.floor(Math.random() * (canvas.height / box)) * box,
-    };
-}
-
-function changeDirection(event) {
-    if (event.keyCode === 37 && direction !== "RIGHT") direction = "LEFT";
-    if (event.keyCode === 38 && direction !== "DOWN") direction = "UP";
-    if (event.keyCode === 39 && direction !== "LEFT") direction = "RIGHT";
-    if (event.keyCode === 40 && direction !== "UP") direction = "DOWN";
-}
-
-function isGameOver() {
-    let head = snake[0];
-
-    // Check wall collision
-    if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
-        return true;
+    // Check collision with wall or self
+    if (snake[0].x < 0 || snake[0].x >= canvas.width || snake[0].y < 0 || snake[0].y >= canvas.height || snake.slice(1).some((part) => part.x === snake[0].x && part.y === snake[0].y)) {
+        alert('Game Over');
+        location.reload();
     }
-
-    // Check self collision
-    for (let i = 1; i < snake.length; i++) {
-        if (head.x === snake[i].x && head.y === snake[i].y) {
-            return true;
-        }
-    }
-
-    return false;
 }
 
-function drawScore() {
-    document.getElementById("score").innerText = "Score: " + score;
-}
+// Handle user input
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' && direction !== 'left') direction = 'right';
+    if (e.key === 'ArrowLeft' && direction !== 'right') direction = 'left';
+    if (e.key === 'ArrowUp' && direction !== 'down') direction = 'up';
+    if (e.key === 'ArrowDown' && direction !== 'up') direction = 'down';
+});
 
-function resetGame() {
-    score = 0;
-    snake = [{ x: box * 5, y: box * 5 }];
-    direction = "RIGHT";
-    apple = spawnApple();
-}
+// Game loop
+setInterval(() => {
+    update();
+    draw();
+}, 1000 / speed);
+
+// Initialize game
+newApple();
+draw();
