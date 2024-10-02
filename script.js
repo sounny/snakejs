@@ -2,25 +2,27 @@
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 
-// Set canvas dimensions to full screen
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+// Check if canvas is loaded
+if (!canvas || !ctx) {
+    console.error('Failed to load canvas');
+    alert('Failed to load canvas');
+}
 
 // Game variables
 let snake = [
-    { x: canvas.width / 2, y: canvas.height / 2 },
-    { x: canvas.width / 2 - 20, y: canvas.height / 2 },
-    { x: canvas.width / 2 - 40, y: canvas.height / 2 }
+    { x: 250, y: 250 },
+    { x: 230, y: 250 },
+    { x: 210, y: 250 }
 ];
 let apple = { x: 0, y: 0 };
 let score = 0;
 let direction = 'right';
-let speed = 20;
+let speed = 10;
 
 // Generate new apple position
 function newApple() {
-    apple.x = Math.floor(Math.random() * (canvas.width / 20)) * 20;
-    apple.y = Math.floor(Math.random() * (canvas.height / 20)) * 20;
+    apple.x = Math.floor(Math.random() * 25) * 20;
+    apple.y = Math.floor(Math.random() * 25) * 20;
 }
 
 // Draw game elements
